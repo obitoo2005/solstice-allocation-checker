@@ -18,12 +18,33 @@ function formatFlaresInput(value) {
   return formatNumber(Number(digitsOnly));
 }
 
+function formatIntegerInput(value) {
+  const digitsOnly = value.replace(/\D/g, "");
+
+  if (!digitsOnly) {
+    return "";
+  }
+
+  return formatNumber(Number(digitsOnly));
+}
+
+function sanitizeDecimalInput(value) {
+  const normalized = value.replace(/,/g, "").replace(/[^\d.]/g, "");
+  const [wholePart = "", ...decimalParts] = normalized.split(".");
+
+  if (decimalParts.length === 0) {
+    return wholePart;
+  }
+
+  return `${wholePart}.${decimalParts.join("")}`;
+}
+
 function getVerdict(netValue) {
   if (netValue > 0.000001) {
     return {
       label: "Profitable",
       tone: "profitable",
-      message: "Above fee",
+      message: "Above cost",
     };
   }
 
@@ -31,23 +52,28 @@ function getVerdict(netValue) {
     return {
       label: "Not worth it",
       tone: "warning",
-      message: "Below fee",
+      message: "Below cost",
     };
   }
 
   return {
     label: "Break-even",
     tone: "neutral",
-    message: "At fee",
+    message: "At cost",
   };
 }
 
 export default function AllocationCalculator() {
   const [flaresInput, setFlaresInput] = useState(formatNumber(DEFAULT_FLARES));
   const [selectedFDV, setSelectedFDV] = useState(fdvOptions[0].value);
+  const [customFDVInput, setCustomFDVInput] = useState("");
+  const [totalCostInput, setTotalCostInput] = useState(String(constants.DEFAULT_TOTAL_COST));
 
   const parsedFlares = Number(flaresInput.replace(/,/g, "")) || 0;
-  const metrics = calculateAllocation(parsedFlares, selectedFDV);
+  const parsedCustomFDV = Number(customFDVInput.replace(/,/g, "")) || 0;
+  const parsedTotalCost = Number(totalCostInput) || 0;
+  const effectiveFDV = customFDVInput.trim() !== "" ? parsedCustomFDV : selectedFDV;
+  const metrics = calculateAllocation(parsedFlares, effectiveFDV, parsedTotalCost);
 
   const verdict = getVerdict(metrics.netValue);
   const sliderValue = Math.min(metrics.sanitizedFlares, SLIDER_MAX);
@@ -66,9 +92,9 @@ export default function AllocationCalculator() {
           </div>
 
           <div className="rounded-2xl bg-amber/10 px-4 py-3 text-right">
-            <p className="text-xs uppercase tracking-[0.22em] text-ink-soft/70">Registration fee</p>
+            <p className="text-xs uppercase tracking-[0.22em] text-ink-soft/70">Total cost</p>
             <p className="mt-1 text-xl font-bold text-ink">
-              {formatCurrency(constants.REGISTRATION_FEE)}
+              {formatCurrency(metrics.sanitizedTotalCost)}
             </p>
           </div>
         </div>
@@ -114,7 +140,30 @@ export default function AllocationCalculator() {
             />
           </div>
 
-          <FDVSelector selectedFDV={selectedFDV} onChange={setSelectedFDV} />
+          <FDVSelector
+            selectedFDV={effectiveFDV}
+            customFDVInput={customFDVInput}
+            onSelectPreset={(value) => {
+              setSelectedFDV(value);
+              setCustomFDVInput("");
+            }}
+            onCustomFDVChange={(value) => setCustomFDVInput(formatIntegerInput(value))}
+          />
+
+          <div className="space-y-3">
+            <label htmlFor="total-cost-input" className="text-sm font-semibold text-ink">
+              Total Cost ($)
+            </label>
+            <input
+              id="total-cost-input"
+              type="text"
+              inputMode="decimal"
+              value={totalCostInput}
+              onChange={(event) => setTotalCostInput(sanitizeDecimalInput(event.target.value))}
+              placeholder="Enter total cost"
+              className="w-full rounded-[1.4rem] border border-white/70 bg-white/80 px-5 py-4 text-lg font-semibold text-ink shadow-sm outline-none ring-0 transition placeholder:text-slate-400 focus:border-amber/50 focus:bg-white"
+            />
+          </div>
 
           <div className="rounded-[1.6rem] border border-slate-200/80 bg-gradient-to-r from-slate-50 via-white to-amber-50/60 p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.26em] text-ink-soft/70">
@@ -140,12 +189,14 @@ export default function AllocationCalculator() {
 
       <ResultsCard
         flares={metrics.sanitizedFlares}
-        selectedFDV={selectedFDV}
+        selectedFDV={metrics.sanitizedFDV}
         tokenPrice={metrics.tokenPrice}
         estimatedTokens={metrics.estimatedTokens}
         usdValue={metrics.usdValue}
         netValue={metrics.netValue}
+        totalCost={metrics.sanitizedTotalCost}
         breakEvenFlares={metrics.breakEvenFlares}
+        roi={metrics.roi}
         verdict={verdict}
       />
     </section>

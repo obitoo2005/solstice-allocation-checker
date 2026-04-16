@@ -19,3 +19,14 @@ export function formatTokenAmount(value) {
     maximumFractionDigits: value > 0 && value < 1 ? 6 : 2,
   }).format(Number.isFinite(value) ? value : 0);
 }
+
+export function formatPercentage(value) {
+  if (!Number.isFinite(value)) {
+    return "N/A";
+  }
+
+  return `${new Intl.NumberFormat("en-US", {
+    maximumFractionDigits: 0,
+    signDisplay: "always",
+  }).format(value)}%`;
+}

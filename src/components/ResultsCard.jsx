@@ -1,4 +1,4 @@
-import { formatCurrency, formatNumber, formatTokenAmount } from "../lib/formatters";
+import { formatCurrency, formatNumber, formatPercentage, formatTokenAmount } from "../lib/formatters";
 
 function StatRow({ label, value, emphasis = false }) {
   return (
@@ -18,7 +18,9 @@ export default function ResultsCard({
   estimatedTokens,
   usdValue,
   netValue,
+  totalCost,
   breakEvenFlares,
+  roi,
   verdict,
 }) {
   const badgeStyles = {
@@ -48,7 +50,7 @@ export default function ResultsCard({
           {formatCurrency(usdValue)}
         </p>
         <div className="mt-4 flex items-center justify-between gap-4 rounded-[1.25rem] border border-white/80 bg-white/85 px-4 py-3">
-          <p className="text-sm font-medium text-ink-soft sm:text-base">Net after registration fee</p>
+          <p className="text-sm font-medium text-ink-soft sm:text-base">Net after total cost</p>
           <p
             className={`text-2xl font-black tracking-tight sm:text-3xl ${
               netValue >= 0 ? "text-success" : "text-danger"
@@ -68,7 +70,12 @@ export default function ResultsCard({
         <StatRow label="User flares entered" value={formatNumber(flares)} emphasis />
         <StatRow label="Selected FDV" value={formatCurrency(selectedFDV)} />
         <StatRow label="Token price" value={formatCurrency(tokenPrice)} />
-        <StatRow label="Break-even flare amount" value={formatNumber(breakEvenFlares)} />
+        <StatRow label="Total Cost" value={formatCurrency(totalCost)} />
+        <StatRow label="ROI %" value={formatPercentage(roi)} />
+        <StatRow
+          label="Break-even flare amount"
+          value={breakEvenFlares === null ? "N/A" : formatNumber(breakEvenFlares)}
+        />
       </div>
     </section>
   );
