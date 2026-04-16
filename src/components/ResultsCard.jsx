@@ -1,9 +1,12 @@
 import { formatCurrency, formatNumber, formatPercentage, formatTokenAmount } from "../lib/formatters";
 
-function StatRow({ label, value, emphasis = false }) {
+function StatRow({ label, value, emphasis = false, helperText = null }) {
   return (
     <div className="flex items-center justify-between gap-3 border-b border-slate-200/70 py-3 last:border-b-0">
-      <span className="text-sm text-ink-soft">{label}</span>
+      <div>
+        <span className="text-sm text-ink-soft">{label}</span>
+        {helperText ? <p className="mt-1 text-xs text-ink-soft/75">{helperText}</p> : null}
+      </div>
       <span className={`text-right text-sm font-semibold ${emphasis ? "text-ink" : "text-ink-soft"}`}>
         {value}
       </span>
@@ -70,13 +73,21 @@ export default function ResultsCard({
         <StatRow label="User flares entered" value={formatNumber(flares)} emphasis />
         <StatRow label="Selected FDV" value={formatCurrency(selectedFDV)} />
         <StatRow label="Token price" value={formatCurrency(tokenPrice)} />
-        <StatRow label="Total Cost" value={formatCurrency(totalCost)} />
-        <StatRow label="ROI %" value={formatPercentage(roi)} />
+        <StatRow label="Your Total Cost" value={formatCurrency(totalCost)} />
+        <StatRow
+          label="ROI %"
+          value={formatPercentage(roi)}
+          helperText="Return based on your total cost"
+        />
         <StatRow
           label="Break-even flare amount"
           value={breakEvenFlares === null ? "N/A" : formatNumber(breakEvenFlares)}
         />
       </div>
+
+      <p className="mt-4 text-xs text-ink-soft/75">
+        Estimates only. Final allocation depends on cohort distribution and participation.
+      </p>
     </section>
   );
 }

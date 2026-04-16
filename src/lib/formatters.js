@@ -25,8 +25,13 @@ export function formatPercentage(value) {
     return "N/A";
   }
 
+  if (value > 1000) {
+    return "+1000%+";
+  }
+
   return `${new Intl.NumberFormat("en-US", {
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
     signDisplay: "always",
   }).format(value)}%`;
 }

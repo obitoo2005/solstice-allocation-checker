@@ -52,6 +52,7 @@ export default function FDVSelector({
           placeholder="Enter custom FDV"
           className="w-full rounded-[1.4rem] border border-white/70 bg-white/80 px-5 py-4 text-lg font-semibold text-ink shadow-sm outline-none ring-0 transition placeholder:text-slate-400 focus:border-amber/50 focus:bg-white"
         />
+        <p className="text-xs text-ink-soft/75">Enter full number (e.g. 130000000)</p>
       </div>
     </div>
   );
